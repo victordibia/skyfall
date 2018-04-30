@@ -3,9 +3,14 @@ var colorindex = 0;
 
 
 // TestBed Details
+windowHeight = $(document).height()
+windowWidth = document.body.clientWidth
+
+console.log(windowHeight, windowWidth);
+
 var scale_factor = 10
-var SPACE_WIDTH = window.innerWidth / scale_factor;
-var SPACE_HEIGHT = window.innerHeight / scale_factor;
+var SPACE_WIDTH = windowWidth / scale_factor;
+var SPACE_HEIGHT = windowHeight / scale_factor;
 
 
 // Bead/Ball Details

@@ -1,7 +1,5 @@
 var paddleMap = new Map();
 var maxNumberPaddles = 10;
-windowHeight = window.innerHeight
-windowWidth = window.innerWidth
 
 var bounceClip = new Audio('http://victordibia.com/skyfall/bounce.wav');
 bounceClip.type = 'audio/wav';
@@ -157,7 +155,7 @@ planck.testbed(function (testbed) {
             }, pauseGameAnimationDuration, function () {});
         } else {
             paddle.setLinearVelocity(Vec2(3, 0))
-           
+
             $(".overlaycenter").animate({
                 opacity: 0,
                 fontSize: "0vw"
@@ -168,25 +166,36 @@ planck.testbed(function (testbed) {
 
     }
 
-    function addUI() {
-        addPaddle()
-
-        // Add mouse movement listener to move paddle
-        window.addEventListener("mousemove", function (event) {
-            if (!pauseGame) { 
-                mouseX = convertToRange(event.clientX, windowXRange, worldXRange);
-                if (!isNaN(mouseX)) {
-                    lineaVeloctiy = Vec2((mouseX - paddle.getPosition().x) * accelFactor, 0)
-                    paddle.setLinearVelocity(lineaVeloctiy)
-                    // xdiff = mouseX - paddle.getPosition().x > 0 ? 100 : -100
-                    // paddle.setPosition(Vec2(mouseX,0))
-                }
-            } else {
-
+    // process mouse move and touch events
+    function mouseMoveHandler(event) {
+        if (!pauseGame) {
+            mouseX = convertToRange(event.clientX, windowXRange, worldXRange);
+            if (!isNaN(mouseX)) {
+                lineaVeloctiy = Vec2((mouseX - paddle.getPosition().x) * accelFactor, 0)
+                paddle.setLinearVelocity(lineaVeloctiy)
+                // xdiff = mouseX - paddle.getPosition().x > 0 ? 100 : -100
+                // paddle.setPosition(Vec2(mouseX,0))
             }
+        } else {
 
+        }
+    }
+
+    function addUI() {
+        addPaddle() 
+
+        $(document).bind('touchmove touchstart mousemove', function (e) {
+            e.preventDefault();
+            var touch
+            if (e.type == "touchmove" ) {
+                  touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+            }else if (e.type == "touchstart"){
+                touch = e.targetTouches[0]
+          }else if (e.type == "mousemove"){
+                  touch = e
+            }
+            mouseMoveHandler (touch) 
         });
-
         // Add keypress event listener to pause game
         document.onkeyup = function (e) {
             var key = e.keyCode ? e.keyCode : e.which;
@@ -194,9 +203,9 @@ planck.testbed(function (testbed) {
                 console.log("spacebar pressed")
                 pauseGamePlay()
             }
-            if(key == 83) {
+            if (key == 83) {
                 $("input#sound").click()
-            } 
+            }
         }
 
         var ground = world.createBody();
@@ -209,7 +218,7 @@ planck.testbed(function (testbed) {
             type: "kinematic",
             filterCategoryBits: PADDLE,
             filterMaskBits: BEAD,
-            position: Vec2(-(0.4 * SPACE_WIDTH / 2), -(0.25 * SPACE_HEIGHT))
+            position: Vec2(-(0.4 * SPACE_WIDTH / 2), -(0.28 * SPACE_HEIGHT))
         })
         paddleLines = [
             [1.8, -0.1],
