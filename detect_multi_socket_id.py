@@ -1,5 +1,5 @@
 ## Author: Victor Dibia
-## Loads models, establishes socket
+## Load hand tracking model, spin up web socket and web application.
 
 
 from utils import detector_utils as detector_utils
@@ -47,15 +47,11 @@ def worker(input_q, output_q, cap_params, frame_processed):
             
             tags = detector_utils.get_tags(classes, category_index, num_hands_detect, score_thresh, scores, boxes, frame)
             
-            
             if (len(tags) > 0):
                 id_utils.get_id(tags, seen_object_list)
-               
-            id_utils.refresh_seen_object_list(seen_object_list, object_refresh_timeout)
-            detector_utils.draw_box_on_image_id(tags, frame)
 
-            #if (len(tags) > 0):
-                #web_socket_client.send_message(tags,"hand")
+            id_utils.refresh_seen_object_list(seen_object_list, object_refresh_timeout)
+            detector_utils.draw_box_on_image_id(tags, frame) 
             
             output_q.put(frame)
             frame_processed += 1
@@ -88,16 +84,15 @@ if __name__ == '__main__':
     input_q = Queue(maxsize=args.queue_size)
     output_q = Queue(maxsize=args.queue_size)
 
-    #args.video_source = "tx2"
-    video_device_id =  "nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)320, height=   (int)240,format=(string)I420, framerate=(fraction)30/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"
 
+    video_device_id =  "0"
     video_capture = WebcamVideoStream(src=video_device_id,
                                       width=args.width,
                                       height=args.height).start()
 
     cap_params = {}
     frame_processed = 0
-    cap_params['im_width'], cap_params['im_height'] = (320,240)
+    cap_params['im_width'], cap_params['im_height'] = video_capture.size()
     cap_params['score_thresh'] = score_thresh
 
     # max number of hands we want to detect/track
@@ -106,7 +101,7 @@ if __name__ == '__main__':
     print(cap_params, args)
 
     # spin up workers to paralleize detection.
-    pool = Pool(2, worker,
+    pool = Pool(args.num_workers, worker,
                 (input_q, output_q, cap_params, frame_processed))
 
     start_time = datetime.datetime.now()
