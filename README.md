@@ -19,6 +19,19 @@ The game web interface listens for hand detection data over a web socket. Each d
 
 <img src="static/img/handmap.jpg" width="100%">
 
+# Next Steps/TODO
+
+There are several limitations with the current implementation — so contributions, pull requests are most welcome!
+
+**Hand Detector Improvement**
+This entails collecting additional training data and leveraging data augmentation strategies to improve the hand detector. This is important as the entire interaction (and user experience) depends on accurate and robust hand tracking (false positives, false negatives make for bad UX).
+
+**Inter-frame Tracking**
+The current implementation uses a simple euclidean based metric to track hands across frames (hand in current frame is identified based on its distance from hands in previous frames). With several overlapping hands, things can get complicated— a more robust tracking algorithm is required (needs to be fast)…
+
+**Tensorflowjs implementation** 
+Conduct some experiments with a TensorFlowjs implementation that allows the entire interaction to be prototyped completely in the browser!!! Tensorflowjs brings so many benefits — easy deployment (no python or Tensorflow installation), no websocket servers and clients, easy reproducibility, more potential users …
+
 
 ## Installation
 
@@ -34,4 +47,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-View the game in your browser - `http://localhost:5005/hand` 
+View the game interface in your browser - `http://localhost:5005/hand` 
+
+
+MIT License.
