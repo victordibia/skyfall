@@ -114,33 +114,7 @@ def draw_fps_on_image(fps, image_np):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (77, 255, 9), 2)
 
 
-def find_models(model_dir):
-    avail_models = []
-    avail_index = 0
-    for f in os.listdir(model_dir):
-        if(f.split(".")[1] == "config"):
-            config_path = os.path.join(model_dir, f)
-            with open(config_path) as json_data_file:
-                config_data = json.load(json_data_file)
-                config_data["index"] = avail_index
-                avail_models.append(config_data)
-                avail_index += 1
-
-    return avail_models
-
-
-def load_models_into_memory(models_dir):
-    models_array = find_models(models_dir)
-    model_memory = []
-    for model_data in models_array:
-        frozen_graph, session, category_index = load_inference_graph(
-            model_data['num_classes'], model_data['frozen_graph_path'], model_data['label_path'])
-        model_params = {"model_name": model_data['model_name'], "frozen_graph": frozen_graph,
-                        "score_thresh": model_data['score_thresh'], "session": session, "category_index": category_index}
-        model_memory.append(model_params)
-    print("All (" + str(len(model_memory)) +
-          ") available models have been loaded into memory")
-    return model_memory
+ 
 
 
 # Code to thread reading camera input.
@@ -150,15 +124,9 @@ class WebcamVideoStream:
     def __init__(self, src, width, height):
         # initialize the video camera stream and read the first frame
         # from the stream
-
-        if (src == "tx2"):
-            src = "nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)" + str(width) +", height=(int)" + str(height) + ",format=(string)I420, framerate=(fraction)30/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"
-            self.stream = cv2.VideoCapture(src)
-        else:
-            self.stream = cv2.VideoCapture(src)
-            #self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-            #self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        
+        self.stream = cv2.VideoCapture(src)
+        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         (self.grabbed, self.frame) = self.stream.read()
 
         # initialize the variable used to indicate if the thread should

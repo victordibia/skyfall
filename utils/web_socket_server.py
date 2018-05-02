@@ -1,3 +1,6 @@
+## Author: Victor Dibia
+## Web socket server. Used to send socket messages to a connected clients.
+
 from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
 from threading import Thread
 import time
@@ -9,14 +12,14 @@ socket_port = 5006
 clients = []
 
 
-class SimpleChat(WebSocket):
+class SockerServer(WebSocket):
 
     def handleMessage(self):
         for client in clients:
             client.sendMessage(self.data)
 
     def handleConnected(self):
-        print(self.address, 'connected')
+        print(" > New client connected ",self.address, 'connected')
         for client in clients:
             client.sendMessage(' - connected')
         clients.append(self)
@@ -28,23 +31,24 @@ class SimpleChat(WebSocket):
             client.sendMessage(self.address[0] + u' - disconnected')
 
 
-def sendMessage():
-    print("sending message to ", len(clients), " clients")
-    for client in clients:
-        client.sendMessage("bingo")
+# def sendMessage():
+#     print("sending message to ", len(clients), " clients")
+#     for client in clients:
+#         client.sendMessage("bingo")
 
 
-def init():
+def spinup_server():
     print("Starting websocket server")
-    server = SimpleWebSocketServer('', socket_port, SimpleChat)
+    server = SimpleWebSocketServer('', socket_port, SockerServer)
     server.serveforever()
 
+
+def init(s_port):
+    socket_port = s_port
+    thread = Thread(target=spinup_server)
+    thread.start()
+    # thread.join()
+
+    time.sleep(4)
+    print("Number of connected clients", len(clients))
     
-
-thread = Thread(target=init)
-thread.start()
-# thread.join()
-
-time.sleep(4)
-print("number of clients", len(clients))
-sendMessage()

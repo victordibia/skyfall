@@ -12,15 +12,24 @@ from utils.detector_utils import WebcamVideoStream
 import time 
 import datetime
 import argparse
-#from utils import web_socket
-#from utils import web_socket_client 
+from threading import Thread
+
+from flask import Flask, render_template, request, jsonify
+from utils import web_socket_server  
+from utils import web_socket_client 
 
 frame_processed = 0
 score_thresh = 0.7
 num_hands_detect = 10
 num_classes = 1
+web_socket_port = 5006
+web_socket_client_url = "ws://localhost:5006"
 
-#web_socket_client.socket_init("ws://localhost:5006")
+
+web_socket_server.init(web_socket_port)
+
+# Initialize websocket client for sending messages
+web_socket_client.socket_init(web_socket_client_url)
 
 # Create a worker thread that loads graph and
 # does detection on images in an input queue and puts it on an output queue
@@ -32,6 +41,18 @@ frozen_graph_path = "hand_inference_graph/frozen_inference_graph.pb"
 object_refresh_timeout = 3
 seen_object_list = {}
 
+# Set up web application serving
+app = Flask(__name__, )
+@app.route("/")
+def hello():
+    return render_template('mousecontrol.html')
+
+@app.route("/hand")
+def test():
+    return render_template('handcontrol.html')
+
+
+# Worker threads that process video frame
 def worker(input_q, output_q, cap_params, frame_processed):
     print(">> loading frozen model for worker")
     
@@ -49,6 +70,7 @@ def worker(input_q, output_q, cap_params, frame_processed):
             
             if (len(tags) > 0):
                 id_utils.get_id(tags, seen_object_list)
+                web_socket_client.send_message(tags,"hand")
 
             id_utils.refresh_seen_object_list(seen_object_list, object_refresh_timeout)
             detector_utils.draw_box_on_image_id(tags, frame) 
@@ -59,6 +81,9 @@ def worker(input_q, output_q, cap_params, frame_processed):
             output_q.put(frame)
     sess.close()
 
+def launch_webserver():
+    app.config['APPLICATION_ROOT'] = "/static"
+    app.run(host='0.0.0.0', port=5005)
 
 if __name__ == '__main__':
 
@@ -68,11 +93,11 @@ if __name__ == '__main__':
     parser.add_argument('-nhands', '--num_hands', dest='num_hands', type=int,
                         default=2, help='Max number of hands to detect.')
     parser.add_argument('-fps', '--fps', dest='fps', type=int,
-                        default=1, help='Show FPS on detection/display visualization')
+                        default=0, help='Show FPS on detection/display visualization')
     parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=300, help='Width of the frames in the video stream.')
+                        default=200, help='Width of the frames in the video stream.')
     parser.add_argument('-ht', '--height', dest='height', type=int,
-                        default=200, help='Height of the frames in the video stream.')
+                        default=180, help='Height of the frames in the video stream.')
     parser.add_argument('-ds', '--display', dest='display', type=int,
                         default=1, help='Display the detected images using OpenCV. This reduces FPS')
     parser.add_argument('-num-w', '--num-workers', dest='num_workers', type=int,
@@ -85,7 +110,7 @@ if __name__ == '__main__':
     output_q = Queue(maxsize=args.queue_size)
 
 
-    video_device_id =  "0"
+    video_device_id =  0
     video_capture = WebcamVideoStream(src=video_device_id,
                                       width=args.width,
                                       height=args.height).start()
@@ -109,6 +134,10 @@ if __name__ == '__main__':
     fps = 0
     index = 0
 
+    # run web application
+    Thread(target=launch_webserver).start()
+   
+
     while True:
         frame = video_capture.read()
         frame = cv2.flip(frame, 1)
@@ -124,13 +153,13 @@ if __name__ == '__main__':
         num_frames += 1
         fps = num_frames / elapsed_time
         # print("frame ",  index, num_frames, elapsed_time, fps)
-
+        cv2.namedWindow("Hand Tracking",cv2.WINDOW_NORMAL)
         if (output_frame is not None):
             if (args.display > 0):
                 if (args.fps > 0):
                     detector_utils.draw_fps_on_image(
                         "FPS : " + str(int(fps)), output_frame)
-                cv2.imshow('Muilti - threaded Detection', output_frame)
+                cv2.imshow('Hand Tracking', output_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:

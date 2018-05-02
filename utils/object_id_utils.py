@@ -1,3 +1,4 @@
+## Author: Victor Dibia
 
 """ A set of functions to help us keep track of objects found in each frame
 and assign them to groups based on computed Euclidean distance.
@@ -133,5 +134,5 @@ def get_id(tags, seen_object_list):
                 assigned_group_keys.append(min_key)
                 tags[i]["id_label"] = item["id"]
                  
-    # print("Seen objects ", tags)
+ 
  

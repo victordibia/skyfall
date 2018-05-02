@@ -9,13 +9,22 @@ windowWidth = window.innerWidth
 
 var bounceClip = new Audio('static/sound/bounce.wav');
 var enableAudio = false;
-var pauseGame = false ;
+var pauseGame = false;
+
+var pauseGame = false;
+var pauseGameAnimationDuration = 500;
+
+$("input#sound").click(function () {
+    enableAudio = $(this).is(':checked')
+    soundtext = enableAudio ? "sound on" : "sound off";
+    $(".soundofftext").text(soundtext)
+});
 
 planck.testbed(function (testbed) {
     var pl = planck,
         Vec2 = pl.Vec2;
 
-    var world = pl.World(Vec2(0, -30)); 
+    var world = pl.World(Vec2(0, -30));
     var BEAD = 4
     var PADDLE = 5
 
@@ -67,7 +76,7 @@ planck.testbed(function (testbed) {
 
     function start() {
         addUI()
-        //connectSocket();
+        connectSocket();
     }
 
 
@@ -92,7 +101,7 @@ planck.testbed(function (testbed) {
 
             midx = left + (width / 2)
             paddle = paddleBodies.get(point.id_label).paddle
-           
+
             mouseX = convertToRange(midx, windowXRange, worldXRange);
             lineaVeloctiy = Vec2((mouseX - paddle.getPosition().x) * accelFactor, 0)
             paddle.setLinearVelocity(lineaVeloctiy)
@@ -124,7 +133,9 @@ planck.testbed(function (testbed) {
         ws.onmessage = function (evt) {
             data = JSON.parse(evt.data);
             // console.log("recevied:", evt.data);
-            getXCord(data.data)
+            if (!pauseGame) {
+                getXCord(data.data)
+            }
         };
 
         ws.onclose = function () {
@@ -133,7 +144,7 @@ planck.testbed(function (testbed) {
             $("button").prop("disabled", true)
 
             setTimeout(function () {
-                // connectSocket();
+                connectSocket();
                 console.log("lengthof of paddleBodiesHoder", paddleBodies.length);
             }, 3000)
         };
@@ -173,9 +184,7 @@ planck.testbed(function (testbed) {
         // console.log("attempting stroke change", bead.getUserData());
         //console.log("bead points ",bead.getUserData().points);
         playClip(bounceClip)
-
-        playerScore += bead.getUserData().points;
-        updateScoreBox();
+        updateScoreBox(bead.getUserData().points);
 
     }
 
@@ -185,17 +194,61 @@ planck.testbed(function (testbed) {
         }
     }
 
-    function updateScoreBox() {
-        $(".scorevalue").fadeOut("slow", function () {
-            $(this).text(playerScore).show()
-        })
+    function updateScoreBox(points) {
+        if (!pauseGame) {
+            playerScore += points;
+            $(".scorevalue").text(playerScore)
+            pointsAdded = points > 0 ? "+" + points : points
+            $(".scoreadded").text(pointsAdded)
+            $(".scoreadded").show().animate({
+                opacity: 0,
+                fontSize: "4vw",
+                color: "#ff8800"
+            }, 500, function () {
+                $(this).css({
+                    fontSize: "2vw",
+                    opacity: 1
+                }).hide()
+            });
+        }
+    }
+
+    function pauseGamePlay() {
+        pauseGame = !pauseGame
+        if (pauseGame) {
+            // paddle.setLinearVelocity(Vec2(0, 0))
+            $(".pauseoverlay").show()
+            $(".overlaycenter").animate({
+                opacity: 1,
+                fontSize: "4vw"
+            }, pauseGameAnimationDuration, function () {});
+        } else {
+            // paddle.setLinearVelocity(Vec2(3, 0))
+
+            $(".overlaycenter").animate({
+                opacity: 0,
+                fontSize: "0vw"
+            }, pauseGameAnimationDuration, function () {
+                $(".pauseoverlay").hide()
+            });
+        }
 
     }
 
     function addUI() {
-        //addPaddle(5)
-        //addPaddle("4")
-        // addPaddle("5")
+
+        // Add keypress event listener to pause game
+        document.onkeyup = function (e) {
+            var key = e.keyCode ? e.keyCode : e.which;
+            if (key == 32) {
+                console.log("spacebar pressed")
+                pauseGamePlay()
+            }
+            if (key == 83) {
+                $("input#sound").click()
+            }
+        }
+
         var ground = world.createBody();
         var groundY = -(0.3 * SPACE_HEIGHT)
         // ground.createFixture(pl.Edge(Vec2(-(0.95 * SPACE_WIDTH / 2), groundY), Vec2((0.95 * SPACE_WIDTH / 2), groundY)), 0.0);
@@ -261,7 +314,7 @@ planck.testbed(function (testbed) {
                 position: Vec2(pl.Math.random(-(SPACE_WIDTH / 2), (SPACE_WIDTH / 2)), pl.Math.random((0.5 * SPACE_HEIGHT), 0.9 * SPACE_HEIGHT))
             });
 
-            
+
 
             var fd = {
                 density: beadFixedDef.density,
@@ -307,23 +360,23 @@ planck.testbed(function (testbed) {
 
         globalTime += dt;
         if (world.m_stepCount % 80 == 0) {
-             
-            if (!pauseGame){
+
+            if (!pauseGame) {
                 generateBeads(NUM_BEADS);
 
-            for (var i = 0; i !== characterBodies.length; i++) {
-                var characterBody = characterBodies[i];
-                //If the character is old, delete it
-                if (characterBody.dieTime <= globalTime) {
-                    characterBodies.splice(i, 1);
-                    world.destroyBody(characterBody);
-                    i--;
-                    continue;
-                }
+                for (var i = 0; i !== characterBodies.length; i++) {
+                    var characterBody = characterBodies[i];
+                    //If the character is old, delete it
+                    if (characterBody.dieTime <= globalTime) {
+                        characterBodies.splice(i, 1);
+                        world.destroyBody(characterBody);
+                        i--;
+                        continue;
+                    }
 
+                }
             }
-            }    
-        } 
+        }
         paddleBodies.forEach(function (item, key, mapObj) {
             stayPaddle(item.paddle)
         });
