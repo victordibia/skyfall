@@ -35,6 +35,8 @@ Conduct some experiments with a TensorFlowjs implementation that allows the enti
 
 ## Installation
 
+> The app has been tested using *Python 3*. Please use your Python 3 environment if possible.
+
 Install requirements.
 
 ```
@@ -47,7 +49,8 @@ pip install -r requirements.txt
 python app.py
 ```
 
-View the game interface in your browser - `http://localhost:5005/hand` 
+View the game interface (hand control) in your browser - `http://localhost:5005/hand` 
 
+To view a simple mouse control version `http://localhost:5005` 
 
 MIT License.
