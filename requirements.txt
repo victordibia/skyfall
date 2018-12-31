@@ -1,7 +1,7 @@
-Flask==0.12.2
+Flask>=0.12.3
 opencv_python==3.4.0.12
 numpy==1.14.2
 tensorflow==1.7.0
 protobuf==3.5.2.post1
 websocket_client==0.47.0
--e git+https://github.com/dpallot/simple-websocket-server.git
+-e git@github.com/dpallot/simple-websocket-server.git#egg=SimpleWebSocketServer
