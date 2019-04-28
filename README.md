@@ -33,6 +33,19 @@ The current implementation uses a simple euclidean based metric to track hands a
 Conduct some experiments with a TensorFlowjs implementation that allows the entire interaction to be prototyped completely in the browser!!! Tensorflowjs brings so many benefits — easy deployment (no python or Tensorflow installation), no websocket servers and clients, easy reproducibility, more potential users …
 
 
+## Update 3/5/19 - Tensorflow.js implementation is now available
+
+I exported the handtrack model using the Tensorflow.js converter and have it wrapped into an easy to use javascript library - [Handtrack.js](https://victordibia.github.io/handtrack.js/). You can do hand tracking in 3 lines of code, no installation, no model training, all in the browser.
+
+<img src="https://github.com/victordibia/handtracking/blob/master/images/doodle.gif?raw=true" width="100%">
+
+Learn more below
+
+- Blog Post:  [Hand Tracking Interactions in the Browser using Tensorflow.js and 3 lines of code.](https://medium.com/@victor.dibia/handtrackjs-677c29c1d585)
+- Github: [Handtrack.js Github Repo](https://github.com/victordibia/handtrack.js)
+- Live Demo : [Handtrack.js Examples in the Browser](https://victordibia.github.io/handtrack.js/)
+
+
 ## Installation
 
 > The app has been tested using *Python 3*. Please use your Python 3 environment if possible.
