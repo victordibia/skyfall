@@ -4,4 +4,4 @@ numpy>=1.14.2
 tensorflow>=1.7.0
 protobuf>=3.5.2.post1
 websocket_client>=0.47.0
--e git://github.com/dpallot/simple-websocket-server.git#egg=SimpleWebSocketServer
+-e git+https://github.com/dpallot/simple-websocket-server.git#egg=SimpleWebSocketServer
